@@ -24,7 +24,7 @@ items = [
     {
         'name': 'Вторжение динозавра',
         'year': 2006,
-        'description': 'У фильмы может быть нелепо переведенное название. Не обращайте внимания. "Паразитов" смотрели все. Настало время смотреть другие, более сильные фильмы этого режиссера.',
+        'description': 'У фильмы, возможно, нелепо переведенное название. Не обращай внимания. "Паразитов" смотрели все. Настало время смотреть другие, более сильные фильмы этого режиссера.',
         'tags': ['Корея', 'легкий хоррор', 'увлекательно']
     },
     {
@@ -35,9 +35,11 @@ items = [
     }
 ]
 
+more_button_text = 'еще'
+
 def get_recommendation(text):
     items_with_tag = []
-    if text and not text.startswith('/'):
+    if text and not text.startswith('/') and not text == more_button_text:
         items_with_tag = [x for x in items if text in x['tags']]
 
     if items_with_tag != []:
@@ -45,13 +47,16 @@ def get_recommendation(text):
     else:
         item = random.choice(items)
 
-    return f"""
+    text = f"""
 <b>{item['name']}</b>
 
 Год: {item['year']}
 
 {item['description']}
-    """, item['tags']
+    """
+
+    buttons = item['tags'] + [more_button_text]
+    return text, buttons
 
 def get_keyboard(tags):
     keyboard =[[]]
@@ -78,12 +83,12 @@ def api():
         update = telegram.Update.de_json(request.get_json(force=True), bot)
 
         chat_id = update.message.chat.id
-        text, tags  = get_recommendation(update.message.text)
+        text, buttons = get_recommendation(update.message.text)
 
         bot.sendMessage(chat_id=chat_id,
                         parse_mode='HTML',
                         text=text,
-                        reply_markup=get_keyboard(tags))
+                        reply_markup=get_keyboard(buttons))
     else:
         return str(bot.get_me())
         
