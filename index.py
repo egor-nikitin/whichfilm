@@ -36,8 +36,11 @@ items = [
 ]
 
 def get_recommendation(text):
-    if text:
+    items_with_tag = []
+    if text and not text.startswith('/'):
         items_with_tag = [x for x in items if text in x['tags']]
+
+    if items_with_tag != []:
         item = random.choice(items_with_tag)
     else:
         item = random.choice(items)
