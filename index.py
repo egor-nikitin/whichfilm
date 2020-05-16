@@ -62,7 +62,7 @@ def get_keyboard(tags):
     keyboard =[[]]
     for tag in tags:
         keyboard[0].append(KeyboardButton(tag))
-    return ReplyKeyboardMarkup(keyboard)
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 @app.route('/', methods=['GET'])
 def getme():
