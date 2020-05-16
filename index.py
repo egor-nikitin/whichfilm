@@ -113,7 +113,7 @@ def api():
             reply(bot, update.message)
         else:
             reply_to_inline(bot, update.callback_query)
-     else:
+    else:
         return str(bot.get_me())
         
     return jsonify({"status": "ok"})
