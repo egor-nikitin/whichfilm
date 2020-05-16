@@ -46,7 +46,7 @@ def get_recommendation(text):
         item = random.choice(items)
 
     return f"""
-**{item['name']}**
+*{item['name']}*
 
 Год: {item['year']}
 
@@ -80,7 +80,10 @@ def api():
         chat_id = update.message.chat.id
         text, tags  = get_recommendation(update.message.text)
 
-        bot.sendMessage(chat_id=chat_id, text=text, reply_markup=get_keyboard(tags))
+        bot.sendMessage(chat_id=chat_id,
+                        parse_mode='MarkdownV2',
+                        text=text,
+                        reply_markup=get_keyboard(tags))
     else:
         return str(bot.get_me())
         
