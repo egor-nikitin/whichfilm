@@ -77,6 +77,10 @@ def api():
         chat_id = update.message.chat.id
 
         text, tags  = get_recommendation(update.callback_query)
+
+        if update.callback_query:
+            bot.answerCallbackQuery(callback_query_id=update.callback_query.id)
+
         bot.sendMessage(chat_id=chat_id, text=text, reply_markup=get_keyboard(tags))
     else:
         return str(bot.get_me())
