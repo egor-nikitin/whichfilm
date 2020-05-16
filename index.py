@@ -72,8 +72,8 @@ def get_tags_keyboard(tags):
     return InlineKeyboardMarkup(keyboard)
 
 def reply(bot, message):
-    chat_id = update.message.chat.id
-    text, tags = get_recommendation(update.message.text)
+    chat_id = message.chat.id
+    text, tags = get_recommendation(message.text)
     tags.append(more_button_text)
 
     bot.sendMessage(chat_id=chat_id,
