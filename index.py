@@ -2,7 +2,7 @@ import os
 import random
 import logging
 import telegram
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import KeyboardButton, ReplyKeyboardMarkup
 
 from flask import Flask, jsonify, Response, request
 app = Flask(__name__)
@@ -35,10 +35,9 @@ items = [
     }
 ]
 
-def get_recommendation(callback_query):
-    if callback_query:
-        tag = callback_query.data
-        items_with_tag = [x for x in items if tag in x['tags']]
+def get_recommendation(text):
+    if text:
+        items_with_tag = [x for x in items if text in x['tags']]
         item = random.choice(items_with_tag)
     else:
         item = random.choice(items)
@@ -54,8 +53,8 @@ def get_recommendation(callback_query):
 def get_keyboard(tags):
     keyboard =[[]]
     for tag in tags:
-        keyboard[0].append(InlineKeyboardButton(tag, callback_data=tag))
-    return InlineKeyboardMarkup(keyboard)
+        keyboard[0].append(KeyboardButton(tag))
+    return ReplyKeyboardMarkup(keyboard)
 
 @app.route('/', methods=['GET'])
 def getme():
@@ -74,12 +73,9 @@ def api():
     
     if request.method == "POST":
         update = telegram.Update.de_json(request.get_json(force=True), bot)
+
         chat_id = update.message.chat.id
-
-        text, tags  = get_recommendation(update.callback_query)
-
-        if update.callback_query:
-            bot.answerCallbackQuery(callback_query_id=update.callback_query.id)
+        text, tags  = get_recommendation(update.message.text)
 
         bot.sendMessage(chat_id=chat_id, text=text, reply_markup=get_keyboard(tags))
     else:
