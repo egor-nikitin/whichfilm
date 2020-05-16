@@ -39,7 +39,7 @@ more_button_text = 'еще'
 
 def get_recommendation(text):
     items_with_tag = []
-    if text and not text.startswith('/') and not text == more_button_text:
+    if text and not text.startswith('/') and text != more_button_text:
         items_with_tag = [x for x in items if text in x['tags']]
 
     if items_with_tag != []:
@@ -53,21 +53,18 @@ def get_recommendation(text):
 {item['description']}
     """
 
-    buttons = item['tags']
-    return text, buttons
+    return text, item['tags']
 
 def get_tags_keyboard(tags):
-    keyboard =[[]]
-
-    row = 0
+    keyboard =[]
+    row = -1
     ind = 0
     for tag in tags:
-        keyboard[row].append(InlineKeyboardButton(text=tag, callback_data=tag))
-        ind += 1
-        # Start next row after 3 tags
         if ind % 3 == 0:
             keyboard.append([])
             row += 1
+        keyboard[row].append(InlineKeyboardButton(text=tag, callback_data=tag))
+        ind += 1
 
     return InlineKeyboardMarkup(keyboard)
 
