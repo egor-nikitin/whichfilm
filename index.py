@@ -71,22 +71,22 @@ def get_tags_keyboard(tags):
 def reply(bot, message):
     chat_id = message.chat.id
     text, tags = get_recommendation(message.text)
-    tags.append(more_button_text)
+    tags_plus_extra = tags + [more_button_text]
 
     bot.sendMessage(chat_id=chat_id,
                     parse_mode='HTML',
                     text=text,
-                    reply_markup=get_tags_keyboard(tags))
+                    reply_markup=get_tags_keyboard(tags_plus_extra))
 
 def reply_to_inline(bot, query):
     text, tags = get_recommendation(query.data)
-    tags.append(more_button_text)
+    tags_plus_extra = tags + [more_button_text]
 
     bot.answerCallbackQuery(callback_query_id=query.id)
     bot.sendMessage(chat_id=query.message.chat.id,
                     parse_mode='HTML',
                     text=text,
-                    reply_markup=get_tags_keyboard(tags))
+                    reply_markup=get_tags_keyboard(tags_plus_extra))
 
 
 @app.route('/', methods=['GET'])
