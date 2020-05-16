@@ -2,7 +2,7 @@ import os
 import random
 import logging
 import telegram
-from telegram import KeyboardButton, ReplyKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from flask import Flask, jsonify, Response, request
 app = Flask(__name__)
@@ -48,28 +48,55 @@ def get_recommendation(text):
         item = random.choice(items)
 
     text = f"""
-<b>{item['name']}</b>
-
-Год: {item['year']}
+<b>{item['name']}</b>, <i>{item['year']}</i>
 
 {item['description']}
     """
 
-    buttons = item['tags'] + [more_button_text]
+    buttons = item['tags']
     return text, buttons
 
-def get_keyboard(tags):
+def get_tags_keyboard(tags):
     keyboard =[[]]
+
+    row = 0
+    ind = 0
     for tag in tags:
-        keyboard[0].append(KeyboardButton(tag))
-    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
+        keyboard[row].append(InlineKeyboardButton(text=tag, callback_data=tag))
+        ind += 1
+        # Start next row after 3 tags
+        if ind % 3 == 0:
+            keyboard.append([])
+            row += 1
+
+    return InlineKeyboardMarkup(keyboard)
+
+def reply(bot, message):
+    chat_id = update.message.chat.id
+    text, tags = get_recommendation(update.message.text)
+    tags.append(more_button_text)
+
+    bot.sendMessage(chat_id=chat_id,
+                    parse_mode='HTML',
+                    text=text,
+                    reply_markup=get_tags_keyboard(tags))
+
+def reply_to_inline(bot, query):
+    text, tags = get_recommendation(query.data)
+    tags.append(more_button_text)
+
+    bot.answerCallbackQuery(callback_query_id=query.id)
+    bot.sendMessage(chat_id=query.message.chat.id,
+                    parse_mode='HTML',
+                    text=text,
+                    reply_markup=get_tags_keyboard(tags))
+
 
 @app.route('/', methods=['GET'])
 def getme():
     TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
     bot = telegram.Bot(TELEGRAM_TOKEN)
-    return str(bot.get_me())
-    
+    return str(bot.get_me())    
 
 @app.route('/api', methods=['GET', 'POST'])
 def api():
@@ -82,14 +109,11 @@ def api():
     if request.method == "POST":
         update = telegram.Update.de_json(request.get_json(force=True), bot)
 
-        chat_id = update.message.chat.id
-        text, buttons = get_recommendation(update.message.text)
-
-        bot.sendMessage(chat_id=chat_id,
-                        parse_mode='HTML',
-                        text=text,
-                        reply_markup=get_keyboard(buttons))
-    else:
+        if update.message:
+            reply(bot, update.message)
+        else:
+            reply_to_inline(bot, update.callback_query)
+     else:
         return str(bot.get_me())
         
     return jsonify({"status": "ok"})
