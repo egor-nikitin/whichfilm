@@ -67,10 +67,9 @@ def save_user_in_db(ctx, user):
         }
         ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).set(user_data, ctx['db_user']['idToken'])
 
-def get_recommendation(ctx, chat_id, input_text):
+def get_recommendation(ctx, chat_id, text):
     prev_item_id = ctx['chats'][chat_id][-1] if chat_id in ctx['chats'] else None
 
-    text = input_text.lower() if input_text else ''
     items = ctx['items']
     items_with_tag = [x for x in items if text in x['tags']] if text else []
 
