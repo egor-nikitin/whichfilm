@@ -245,7 +245,7 @@ def reply_to_inline(ctx, bot, query):
         send_followup_message(ctx, bot, query.message.chat,
                             query.data if filtered else None)
     else:
-        send_no_more_items_message(ctx, bot, message.chat)
+        send_no_more_items_message(ctx, bot, query.message.chat)
 
 @app.route('/', methods=['GET'])
 def getme():
