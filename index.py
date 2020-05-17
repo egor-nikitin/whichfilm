@@ -59,11 +59,13 @@ def get_recommendation(ctx, input_text):
     if text:
         items_with_tag = [x for x in items if text in x['tags']]
 
+    filtered = False
     if items_with_tag != []:
         item = random.choice(items_with_tag)
+        filtered = True
     else:
         item = random.choice(items)
-    return item
+    return item, filtered
 
 def split_into_rows(tags):
     rows =[]
@@ -152,9 +154,12 @@ def send_start_message(ctx, bot, chat):
                     text=text,
                     reply_markup=get_reply_keyboard(tags))
 
-def send_followup_message(ctx, bot, chat):
+def send_followup_message(ctx, bot, chat, tag=None):
     text = random.choice(['Ну что, как тебе?', 'Вот такое кино вспомнилось. Что думаешь?', 'Только не говори, что уже смотрел.', 'Что думаешь?'])
-    tags = ['Давай еще', 'Уже смотрел']
+    if tag:
+        tags = ['Еще ' + tag, 'Что-то другое', 'Смотрел']
+    else:
+        tags = ['Давай еще', 'Уже смотрел']
     bot.sendMessage(chat_id=chat.id,
                     text=text,
                     reply_markup=get_reply_keyboard(tags))
@@ -173,19 +178,23 @@ def reply(ctx, bot, message):
         elif message.text == 'Уже смотрел':
             send_seen_it_message(ctx, bot, message.chat)
             text = ''
-        elif message.text in ['Давай случайный', 'Еще', 'еще', 'Давай еще'] or message.text.startswith('/'):
+        elif message.text.startswith('Еще '):
+            text = message.text.split(' ')[1]
+        elif message.text.lower() in ['давай случайный', 'другое', 'еще', 'давай еще'] or message.text.startswith('/'):
             text = ''
         else:
             text = message.text
-        item = get_recommendation(ctx, text)
+        item, filtered = get_recommendation(ctx, text)
         send_item(ctx, bot, message.chat, item)
-        send_followup_message(ctx, bot, message.chat)
+        send_followup_message(ctx, bot, message.chat,
+                              text if filtered else None)
 
 def reply_to_inline(ctx, bot, query):
-    item = get_recommendation(ctx, query.data)
+    item, filtered = get_recommendation(ctx, query.data)
     bot.answerCallbackQuery(callback_query_id=query.id)
     send_item(ctx, bot, query.message.chat, item)
-    send_followup_message(ctx, bot, query.message.chat)
+    send_followup_message(ctx, bot, query.message.chat,
+                          query.data if filtered else None)
 
 @app.route('/', methods=['GET'])
 def getme():
