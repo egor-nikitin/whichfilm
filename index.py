@@ -28,7 +28,8 @@ def init():
         'db_user': {},
         'db': firebase.database(),
         'firebase': firebase,
-        'items': []
+        'items': [],
+        'chats': {}
     }
 
 ctx = init()
@@ -66,19 +67,20 @@ def save_user_in_db(ctx, user):
         }
         ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).set(user_data, ctx['db_user']['idToken'])
 
-def get_recommendation(ctx, input_text):
+def get_recommendation(ctx, chat_id, input_text):
+    prev_item_id = ctx['chats'][chat_id][-1] if chat_id in ctx['chats'] else None
+
     text = input_text.lower() if input_text else ''
     items = ctx['items']
-    items_with_tag = []
-    if text:
-        items_with_tag = [x for x in items if text in x['tags']]
+    items_with_tag = [x for x in items if text in x['tags']] if text else []
 
     filtered = False
     if items_with_tag != []:
-        item = random.choice(items_with_tag)
+        items_with_tag = [x for x in items_with_tag if x['id'] != prev_item_id]
+        item = random.choice(items_with_tag) if items_with_tag != [] else None
         filtered = True
     else:
-        item = random.choice(items)
+        item = random.choice([x for x in items if x['id'] != prev_item_id])
     return item, filtered
 
 def split_into_rows(tags):
@@ -137,6 +139,11 @@ def photo_size_to_json(photos):
         })
     return images
 
+def save_sent_item(ctx, chat_id, item):
+    if chat_id not in ctx['chats']:
+        ctx['chats'][chat_id] = []
+    ctx['chats'][chat_id].append(item['id'])
+
 def send_item(ctx, bot, chat, item):
     text = get_item_text(item)
     tags = item['tags']
@@ -160,6 +167,8 @@ def send_item(ctx, bot, chat, item):
                         parse_mode='HTML',
                         text=text,
                         reply_markup=get_tags_keyboard(tags))
+
+    save_sent_item(ctx, chat.id, item)
 
 def send_start_message(ctx, bot, chat):
     text = 'Я буду советовать фильмы из категорий, которые ты будешь выбирать. Наверное, тебя интересуют новинки. Если нет, могу предложить случайный фильм. Или просто набери интересную тебе категорию. Поищем.'
@@ -195,6 +204,13 @@ def send_seen_it_message(ctx, bot, chat):
     bot.sendMessage(chat_id=chat.id,
                     text=text)
 
+def send_no_more_items_message(ctx, bot, chat):
+    text = 'Это был единственный фильм с таким тэгом. Попробуй что-нибудь другое'
+    tags = ['Давай случайный', 'Новое', 'Драма']
+    bot.sendMessage(chat_id=chat.id,
+                    text=text,
+                    reply_markup=get_reply_keyboard(tags))
+
 def reply(ctx, bot, message):
     if message.text == '/start':
         save_user_in_db(ctx, message.from_user)
@@ -213,13 +229,16 @@ def reply(ctx, bot, message):
             text = ''
         else:
             text = message.text
-        item, filtered = get_recommendation(ctx, text)
-        send_item(ctx, bot, message.chat, item)
-        send_followup_message(ctx, bot, message.chat,
-                              text if filtered else None)
+        item, filtered = get_recommendation(ctx, message.chat.id, text)
+        if item:
+            send_item(ctx, bot, message.chat, item)
+            send_followup_message(ctx, bot, message.chat,
+                                  text if filtered else None)
+        else:
+            send_no_more_items_message(ctx, bot, message.chat)
 
 def reply_to_inline(ctx, bot, query):
-    item, filtered = get_recommendation(ctx, query.data)
+    item, filtered = get_recommendation(ctx, query.message.chat.id, query.data)
     bot.answerCallbackQuery(callback_query_id=query.id)
     send_item(ctx, bot, query.message.chat, item)
     send_followup_message(ctx, bot, query.message.chat,
@@ -240,6 +259,7 @@ def api():
     bot = telegram.Bot(TELEGRAM_TOKEN)
     
     if request.method == "POST":
+        random.seed()
         refresh_db_auth(ctx)
         update_items_cache(ctx)
         update = telegram.Update.de_json(request.get_json(force=True), bot)
