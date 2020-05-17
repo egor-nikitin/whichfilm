@@ -154,6 +154,18 @@ def send_start_message(ctx, bot, chat):
                     text=text,
                     reply_markup=get_reply_keyboard(tags))
 
+def send_help_message(ctx, bot, chat):
+    text = """Советую кино, которое мне самому нравится.
+
+Нажимай на любой из тэгов фильма, чтобы увидеть другой с таким же тэгом. Можешь просто набрать тэг текстом.
+
+/start, если хочешь начать разговор сначала.
+"""
+    tags = ['Понятно', 'Что посмотреть?']
+    bot.sendMessage(chat_id=chat.id,
+                    text=text,
+                    reply_markup=get_reply_keyboard(tags))            
+
 def send_followup_message(ctx, bot, chat, tag=None):
     text = random.choice(['Ну что, как тебе?', 'Вот такое кино вспомнилось. Что думаешь?', 'Только не говори, что уже смотрел.', 'Что думаешь?'])
     if tag:
@@ -172,6 +184,8 @@ def send_seen_it_message(ctx, bot, chat):
 def reply(ctx, bot, message):
     if message.text == '/start':
         send_start_message(ctx, bot, message.chat)
+    elif message.text == '/help':
+        send_help_message(ctx, bot, message.chat)
     else:
         if message.text == 'Хочу новинки':
             text = 'новое'
@@ -180,7 +194,7 @@ def reply(ctx, bot, message):
             text = ''
         elif message.text.startswith('Еще '):
             text = message.text.split(' ')[1]
-        elif message.text.lower() in ['давай случайный', 'другое', 'еще', 'давай еще'] or message.text.startswith('/'):
+        elif message.text.lower() in ['давай случайный', 'другое', 'еще', 'давай еще', 'понятно', 'что посмотреть?'] or message.text.startswith('/'):
             text = ''
         else:
             text = message.text
