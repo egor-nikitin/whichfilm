@@ -205,7 +205,7 @@ def send_seen_it_message(ctx, bot, chat):
                     text=text)
 
 def send_no_more_items_message(ctx, bot, chat):
-    text = 'Это был единственный фильм с таким тэгом. Попробуй что-нибудь другое'
+    text = 'Выше был единственный фильм с таким тэгом. Попробуй что-нибудь другое.'
     tags = ['Давай случайный', 'Новое', 'Драма']
     bot.sendMessage(chat_id=chat.id,
                     text=text,
@@ -240,9 +240,12 @@ def reply(ctx, bot, message):
 def reply_to_inline(ctx, bot, query):
     item, filtered = get_recommendation(ctx, query.message.chat.id, query.data)
     bot.answerCallbackQuery(callback_query_id=query.id)
-    send_item(ctx, bot, query.message.chat, item)
-    send_followup_message(ctx, bot, query.message.chat,
-                          query.data if filtered else None)
+    if item:
+        send_item(ctx, bot, query.message.chat, item)
+        send_followup_message(ctx, bot, query.message.chat,
+                            query.data if filtered else None)
+    else:
+        send_no_more_items_message(ctx, bot, message.chat)
 
 @app.route('/', methods=['GET'])
 def getme():
