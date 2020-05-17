@@ -175,7 +175,7 @@ def reply(ctx, bot, message):
     else:
         if message.text == 'Хочу новинки':
             text = 'новое'
-        elif message.text == 'Уже смотрел':
+        elif message.text.lower() in ['уже смотрел', 'смотрел']:
             send_seen_it_message(ctx, bot, message.chat)
             text = ''
         elif message.text.startswith('Еще '):
