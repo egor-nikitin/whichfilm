@@ -21,12 +21,12 @@ config = {
 
 firebase = pyrebase.initialize_app(config)
 auth = firebase.auth()
-db_auth_updated_at = None
+db_auth_updated_at = 0
 db_user = {}
 db = firebase.database()
 
 def refresh_db_auth():
-    if not db_auth_updated_at:
+    if db_auth_updated_at == 0:
         db_user = auth.sign_in_with_email_and_password('yegor.nikitin@gmail.com', 'sdHds3@dkIq8pp')
         db_auth_updated_at = time.time()
     elif (time.time() - db_auth_updated_at > 3500):
