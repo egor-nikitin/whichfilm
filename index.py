@@ -65,30 +65,32 @@ def get_recommendation(ctx, input_text):
         item = random.choice(items)
     return item
 
-def get_tags_keyboard(tags):
-    keyboard =[]
+def split_into_rows(tags):
+    rows =[]
     row = -1
     ind = 0
     for tag in tags:
-        if ind % 3 == 0:
-            keyboard.append([])
+        if ind >= 3:
+            rows.append([])
             row += 1
-        keyboard[row].append(InlineKeyboardButton(text=tag, callback_data=tag))
-        ind += 1
+            ind = 0
+        rows[row].append(tag)
+        ind += len(tag.split(' '))
+    return rows
 
+def get_tags_keyboard(tags):
+    rows = split_into_rows(tags)
+    keyboard = []
+    for row in rows:
+        keyboard.append([])
+        for tag in row:
+            keyboard[-1].append(InlineKeyboardButton(text=tag, callback_data=tag))
     return InlineKeyboardMarkup(keyboard)
 
 def get_reply_keyboard(tags):
-    keyboard =[]
-    row = -1
-    ind = 0
+    keyboard =[[]]
     for tag in tags:
-        if ind % 3 == 0:
-            keyboard.append([])
-            row += 1
-        keyboard[row].append(KeyboardButton(text=tag))
-        ind += 1
-
+        keyboard[0].append(KeyboardButton(text=tag))
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 def get_item_text(item):
