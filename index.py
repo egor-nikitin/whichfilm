@@ -197,7 +197,7 @@ def send_seen_it_message(ctx, bot, chat):
 
 def reply(ctx, bot, message):
     if message.text == '/start':
-        save_user_in_db(ctx, getattr(message, 'from'))
+        save_user_in_db(ctx, message.from_user)
         send_start_message(ctx, bot, message.chat)
     elif message.text == '/help':
         send_help_message(ctx, bot, message.chat)
