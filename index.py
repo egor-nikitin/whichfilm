@@ -2,7 +2,7 @@ import os
 import random
 import logging
 import telegram
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 import pyrebase
 import time
 
@@ -41,8 +41,6 @@ def refresh_db_auth(ctx):
         ctx['db_user'] = ctx['auth'].refresh(ctx['db_user']['refreshToken'])
         ctx['db_auth_updated_at'] = time.time()
 
-more_button_text = 'еще'
-
 def update_items_cache(ctx):
     if ctx['items'] == []:
         db_items = ctx['db'].child(ctx['db_user']['localId']).child("items").get(ctx['db_user']['idToken'])
@@ -54,10 +52,11 @@ def update_items_cache(ctx):
 def update_item_in_db(ctx, item):
     ctx['db'].child(ctx['db_user']['localId']).child("items").child(item['id']).update(item, ctx['db_user']['idToken'])
 
-def get_recommendation(ctx, text):
+def get_recommendation(ctx, input_text):
+    text = input_text.lower() if input_text else ''
     items = ctx['items']
     items_with_tag = []
-    if text and not text.startswith('/') and text != more_button_text:
+    if text:
         items_with_tag = [x for x in items if text in x['tags']]
 
     if items_with_tag != []:
@@ -78,6 +77,19 @@ def get_tags_keyboard(tags):
         ind += 1
 
     return InlineKeyboardMarkup(keyboard)
+
+def get_reply_keyboard(tags):
+    keyboard =[]
+    row = -1
+    ind = 0
+    for tag in tags:
+        if ind % 3 == 0:
+            keyboard.append([])
+            row += 1
+        keyboard[row].append(KeyboardButton(text=tag))
+        ind += 1
+
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 def get_item_text(item):
     return f"""
@@ -109,13 +121,13 @@ def photo_size_to_json(photos):
 
 def send_item(ctx, bot, chat, item):
     text = get_item_text(item)
-    tags_plus_extra = item['tags'] + [more_button_text]
+    tags = item['tags']
     if not 'file_id' in item and 'image_url' in item:
         message = bot.sendPhoto(chat_id=chat.id,
                       photo=item['image_url'],
                       caption=text,
                       parse_mode='HTML',
-                      reply_markup=get_tags_keyboard(tags_plus_extra))
+                      reply_markup=get_tags_keyboard(tags))
         item['images'] = photo_size_to_json(message.photo)
         item['file_id'] = get_biggest_photo_file_id(message.photo)
         update_item_in_db(ctx, item)
@@ -124,16 +136,48 @@ def send_item(ctx, bot, chat, item):
                       photo=item['file_id'],
                       caption=text,
                       parse_mode='HTML',
-                      reply_markup=get_tags_keyboard(tags_plus_extra))
+                      reply_markup=get_tags_keyboard(tags))
     else:
         bot.sendMessage(chat_id=chat.id,
                         parse_mode='HTML',
                         text=text,
-                        reply_markup=get_tags_keyboard(tags_plus_extra))
+                        reply_markup=get_tags_keyboard(tags))
+
+def send_start_message(ctx, bot, chat):
+    text = 'Я буду советовать фильмы из категорий, которые ты будешь выбирать. Наверное, тебя интересуют новинки. Если нет, могу предложить случайный фильм. Или просто набери интересную тебе категорию. Поищем.'
+    tags = ['Хочу новинки', 'Давай случайный']
+    bot.sendMessage(chat_id=chat.id,
+                    text=text,
+                    reply_markup=get_reply_keyboard(tags))
+
+def send_followup_message(ctx, bot, chat):
+    text = random.choice(['Ну что, как тебе?', 'Вот такое кино вспомнилось. Что думаешь?', 'Только не говори, что уже смотрел.', 'Что думаешь?'])
+    tags = ['Уже смотрел', 'Еще']
+    bot.sendMessage(chat_id=chat.id,
+                    text=text,
+                    reply_markup=get_reply_keyboard(tags))
+
+def send_seen_it_message(ctx, bot, chat):
+    text = random.choice(['А ты насмотренный.', 'Ладно. Дай подумать.', 'Бывает. Сейчас еще один дам.', 'А этот?'])
+    bot.sendMessage(chat_id=chat.id,
+                    text=text)
 
 def reply(ctx, bot, message):
-    item = get_recommendation(ctx, message.text)
-    send_item(ctx, bot, message.chat, item)
+    if message.text == '/start':
+        send_start_message(ctx, bot, message.chat)
+    else:
+        if message.text == 'Хочу новинки':
+            text = 'новое'
+        elif message.text == 'Уже смотрел':
+            send_seen_it_message(ctx, bot, message.chat)
+            text = ''
+        elif message.text in ['Давай случайный', 'Еще', 'еще'] or message.text.startswith('/'):
+            text = ''
+        else:
+            text = message.text
+        item = get_recommendation(ctx, text)
+        send_item(ctx, bot, message.chat, item)
+        send_followup_message(ctx, bot, message.chat)
 
 def reply_to_inline(ctx, bot, query):
     item = get_recommendation(ctx, query.data)
