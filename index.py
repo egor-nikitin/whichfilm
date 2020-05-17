@@ -22,7 +22,7 @@ def init():
 
     firebase = pyrebase.initialize_app(config)
 
-    ctx = {
+    return {
         'auth': firebase.auth(),
         'db_auth_updated_at': 0,
         'db_user': {},
@@ -30,8 +30,6 @@ def init():
         'firebase': firebase,
         'items': []
     }
-
-    return ctx
 
 ctx = init()
 
@@ -97,6 +95,18 @@ def get_biggest_photo_file_id(photos):
             file_id = photo.file_id
     return file_id
 
+def photo_size_to_json(photos):
+    images = []
+    for photo in photos:
+        images.append({
+            'file_id': photo.file_id,
+            'file_unique_id': photo.file_unique_id,
+            'width': photo.width,
+            'height': photo.height,
+            'file_size': photo.file_size
+        })
+    return images
+
 def send_item(ctx, bot, chat, item):
     text = get_item_text(item)
     tags_plus_extra = item['tags'] + [more_button_text]
@@ -106,7 +116,7 @@ def send_item(ctx, bot, chat, item):
                       caption=text,
                       parse_mode='HTML',
                       reply_markup=get_tags_keyboard(tags_plus_extra))
-        item['photo'] = message.photo
+        item['images'] = photo_size_to_json(message.photo)
         item['file_id'] = get_biggest_photo_file_id(message.photo)
         update_item_in_db(ctx, item)
     elif 'file_id' in item:
