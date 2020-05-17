@@ -8,7 +8,6 @@ import time
 
 from flask import Flask, jsonify, Response, request
 app = Flask(__name__)
-ctx = init()
 
 def init():
     config = {
@@ -33,6 +32,8 @@ def init():
     }
 
     return ctx
+
+ctx = init()
 
 def refresh_db_auth(ctx):
     if ctx['db_auth_updated_at'] == 0:
