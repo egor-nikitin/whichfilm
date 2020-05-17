@@ -52,6 +52,20 @@ def update_items_cache(ctx):
 def update_item_in_db(ctx, item):
     ctx['db'].child(ctx['db_user']['localId']).child("items").child(item['id']).update(item, ctx['db_user']['idToken'])
 
+def save_user_in_db(ctx, user):
+    user_db = ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).get(ctx['db_user']['idToken'])
+    if not user_db.val():
+        user_data = {
+            'id': user.id,
+            'is_bot': user.is_bot,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'username': user.username,
+            'language_code': user.language_code,
+            'created_at': int(time.time())
+        }
+        ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).set(user_data, ctx['db_user']['idToken'])
+
 def get_recommendation(ctx, input_text):
     text = input_text.lower() if input_text else ''
     items = ctx['items']
@@ -183,6 +197,7 @@ def send_seen_it_message(ctx, bot, chat):
 
 def reply(ctx, bot, message):
     if message.text == '/start':
+        save_user_in_db(ctx, message.user)
         send_start_message(ctx, bot, message.chat)
     elif message.text == '/help':
         send_help_message(ctx, bot, message.chat)
