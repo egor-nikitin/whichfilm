@@ -152,7 +152,7 @@ def send_start_message(ctx, bot, chat):
 
 def send_followup_message(ctx, bot, chat):
     text = random.choice(['Ну что, как тебе?', 'Вот такое кино вспомнилось. Что думаешь?', 'Только не говори, что уже смотрел.', 'Что думаешь?'])
-    tags = ['Уже смотрел', 'Еще']
+    tags = ['Давай еще', 'Уже смотрел']
     bot.sendMessage(chat_id=chat.id,
                     text=text,
                     reply_markup=get_reply_keyboard(tags))
@@ -171,7 +171,7 @@ def reply(ctx, bot, message):
         elif message.text == 'Уже смотрел':
             send_seen_it_message(ctx, bot, message.chat)
             text = ''
-        elif message.text in ['Давай случайный', 'Еще', 'еще'] or message.text.startswith('/'):
+        elif message.text in ['Давай случайный', 'Еще', 'еще', 'Давай еще'] or message.text.startswith('/'):
             text = ''
         else:
             text = message.text
