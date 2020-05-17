@@ -48,7 +48,7 @@ more_button_text = 'еще'
 def update_items_cache(ctx):
     if ctx['items'] == []:
         db_items = ctx['db'].child(ctx['db_user']['localId']).child("items").get(ctx['db_user']['idToken'])
-        for db_item in db_items:
+        for db_item in db_items.each():
             item = db_item.val()
             item['id'] = db_item.key()
             ctx['items'].append(item)
