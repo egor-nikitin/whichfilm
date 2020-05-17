@@ -70,7 +70,7 @@ def split_into_rows(tags):
     row = -1
     ind = 0
     for tag in tags:
-        if ind >= 3:
+        if ind == 0 or ind >= 3:
             rows.append([])
             row += 1
             ind = 0
