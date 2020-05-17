@@ -185,6 +185,7 @@ def reply_to_inline(ctx, bot, query):
     item = get_recommendation(ctx, query.data)
     bot.answerCallbackQuery(callback_query_id=query.id)
     send_item(ctx, bot, query.message.chat, item)
+    send_followup_message(ctx, bot, query.message.chat)
 
 @app.route('/', methods=['GET'])
 def getme():
