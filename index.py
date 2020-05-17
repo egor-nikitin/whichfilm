@@ -8,7 +8,7 @@ import time
 
 from flask import Flask, jsonify, Response, request
 app = Flask(__name__)
-ctx = {}
+ctx = init()
 
 def init():
     config = {
@@ -142,8 +142,6 @@ def api():
         return jsonify({"status": "error", "reason": "no tg token"})
     
     bot = telegram.Bot(TELEGRAM_TOKEN)
-    if not ctx:
-        ctx = init()
     
     if request.method == "POST":
         refresh_db_auth(ctx)
