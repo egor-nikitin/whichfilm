@@ -5,6 +5,7 @@ import telegram
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 import pyrebase
 import time
+import analytics
 
 from flask import Flask, jsonify, Response, request
 app = Flask(__name__)
@@ -53,7 +54,7 @@ def update_items_cache(ctx):
 def update_item_in_db(ctx, item):
     ctx['db'].child(ctx['db_user']['localId']).child("items").child(item['id']).update(item, ctx['db_user']['idToken'])
 
-def save_user_in_db(ctx, user):
+def save_user(ctx, user, chat):
     user_db = ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).get(ctx['db_user']['idToken'])
     if not user_db.val():
         user_data = {
@@ -66,6 +67,8 @@ def save_user_in_db(ctx, user):
             'created_at': int(time.time())
         }
         ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).set(user_data, ctx['db_user']['idToken'])
+        analytics.send_first_launch_event(user, chat)
+    analytics.send_start_event(user, chat)
 
 def get_recommendation(ctx, chat_id, text):
     prev_item_id = ctx['chats'][chat_id][-1] if chat_id in ctx['chats'] else None
@@ -143,7 +146,7 @@ def save_sent_item(ctx, chat_id, item):
         ctx['chats'][chat_id] = []
     ctx['chats'][chat_id].append(item['id'])
 
-def send_item(ctx, bot, chat, item):
+def send_item(ctx, bot, user, chat, item):
     text = get_item_text(item)
     tags = item['tags']
     if not 'file_id' in item and 'image_url' in item:
@@ -168,6 +171,7 @@ def send_item(ctx, bot, chat, item):
                         reply_markup=get_tags_keyboard(tags))
 
     save_sent_item(ctx, chat.id, item)
+    analytics.send_item_sent_event(user, chat, item)
 
 def send_start_message(ctx, bot, chat):
     text = 'Я буду советовать фильмы из категорий, которые ты будешь выбирать. Наверное, тебя интересуют новинки. Если нет, могу предложить случайный фильм. Или просто набери интересную тебе категорию. Поищем.'
@@ -211,40 +215,53 @@ def send_no_more_items_message(ctx, bot, chat):
                     reply_markup=get_reply_keyboard(tags))
 
 def reply(ctx, bot, message):
+    intent = ''
     if message.text == '/start':
-        save_user_in_db(ctx, message.from_user)
+        intent = 'command'
+        save_user(ctx, message.from_user, message.chat)
         send_start_message(ctx, bot, message.chat)
     elif message.text == '/help':
+        intent = 'command'
         send_help_message(ctx, bot, message.chat)
     else:
         if message.text == 'Хочу новинки':
+            intent = 'query'
             text = 'новое'
         elif message.text.lower() in ['уже смотрел', 'смотрел']:
+            intent = 'seen_already'
             send_seen_it_message(ctx, bot, message.chat)
             text = ''
         elif message.text.startswith('Еще '):
+            intent = 'random'
             text = message.text.split(' ')[1]
         elif message.text.lower() in ['давай случайный', 'другое', 'еще', 'давай еще', 'понятно', 'что посмотреть?'] or message.text.startswith('/'):
+            intent = 'random'
             text = ''
         else:
+            intent = 'query'
             text = message.text
-        item, filtered = get_recommendation(ctx, message.chat.id, text)
+        item, filtered = get_recommendation(ctx, message.chat.id, text)        
         if item:
-            send_item(ctx, bot, message.chat, item)
+            send_item(ctx, bot, message.from_user, message.chat, item)
             send_followup_message(ctx, bot, message.chat,
                                   text if filtered else None)
         else:
             send_no_more_items_message(ctx, bot, message.chat)
 
+    analytics.send_message_event(message.from_user, message.chat, 'reply', intent, message.text)
+
 def reply_to_inline(ctx, bot, query):
     item, filtered = get_recommendation(ctx, query.message.chat.id, query.data)
     bot.answerCallbackQuery(callback_query_id=query.id)
     if item:
-        send_item(ctx, bot, query.message.chat, item)
+        send_item(ctx, bot, query.from_user, query.message.chat, item)
         send_followup_message(ctx, bot, query.message.chat,
                             query.data if filtered else None)
     else:
         send_no_more_items_message(ctx, bot, query.message.chat)
+
+    analytics.send_message_event(query.from_user, query.message.chat, 'inline', 'query', query.data)
+
 
 @app.route('/', methods=['GET'])
 def getme():
