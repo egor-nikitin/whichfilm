@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 def init():
     config = {
-        'apiKey': 'AIzaSyA2LihYUsMhVdZa60XBSZ3j4IUaSGh0NOI',
+        'apiKey': os.getenv("FIREBASE_API_KEY"),
         'authDomain': 'whichfilmbot.firebaseapp.com',
         'databaseURL': 'https://whichfilmbot.firebaseio.com',
         'projectId': 'whichfilmbot',
@@ -37,7 +37,7 @@ ctx = init()
 
 def refresh_db_auth(ctx):
     if ctx['db_auth_updated_at'] == 0:
-        ctx['db_user'] = ctx['auth'].sign_in_with_email_and_password('yegor.nikitin@gmail.com', 'sdHds3@dkIq8pp')
+        ctx['db_user'] = ctx['auth'].sign_in_with_email_and_password('yegor.nikitin@gmail.com', os.getenv("FIREBASE_PASSWORD"))
         ctx['db_auth_updated_at'] = time.time()
     elif (time.time() - ctx['db_auth_updated_at'] > 3500):
         ctx['db_user'] = ctx['auth'].refresh(ctx['db_user']['refreshToken'])

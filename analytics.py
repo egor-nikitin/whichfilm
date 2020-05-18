@@ -1,6 +1,7 @@
 import requests
 import uuid
 import datetime
+import os
 
 headers = {
   'Content-Type': 'application/json',
@@ -38,7 +39,7 @@ def send_event(event, user, chat):
         event_data['event_properties'] = event['properties']
 
     data = {
-        'api_key': '41c3eb89abee67f638a617997646522d',
+        'api_key': os.getenv('AMPLITUDE_API_KEY'),
         'events': [event_data]
     }
 

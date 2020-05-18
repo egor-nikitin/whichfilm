@@ -6,6 +6,9 @@
           { "src": "/(.*)", "dest": "index.py" }
     ],
     "env": {
-      "TELEGRAM_TOKEN": "@telegram-token"
+      "TELEGRAM_TOKEN": "@telegram-token",
+      "FIREBASE_API_KEY": "@firebase-api-key",
+      "FIREBASE_PASSWORD": "@firebase-password",
+      "AMPLITUDE_API_KEY": "@amplitude-api-key"
     }
   }
