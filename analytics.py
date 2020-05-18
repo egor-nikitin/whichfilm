@@ -17,8 +17,8 @@ def day_number():
 def send_event(event, user, chat):
     event_data = {
         'insert_id': str(uuid.uuid4()),
-        'user_id': user.id,
-        'device_id': chat.id,
+        'user_id': str(user.id),
+        'device_id': str(chat.id),
         'event_type': event['type'],
         'user_properties': {
             'is_bot': user.is_bot,
@@ -43,7 +43,7 @@ def send_event(event, user, chat):
     }
 
     requests.post('https://api.amplitude.com/2/httpapi',
-                  data=data,
+                  json=data,
                   headers = headers)
 
 def send_first_launch_event(user, chat):
