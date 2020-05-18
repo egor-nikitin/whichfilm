@@ -15,8 +15,7 @@ def day_number():
     return (today - datetime.datetime(today.year, 1, 1)).days + 1
 
 def send_event(event, user, chat):
-    data = {
-        'api_key': '41c3eb89abee67f638a617997646522d',
+    event_data = {
         'insert_id': str(uuid.uuid4()),
         'user_id': user.id,
         'device_id': chat.id,
@@ -36,7 +35,12 @@ def send_event(event, user, chat):
     }
 
     if 'properties' in event:
-        data['event_properties'] = event['properties']
+        event_data['event_properties'] = event['properties']
+
+    data = {
+        'api_key': '41c3eb89abee67f638a617997646522d',
+        'events': [event_data]
+    }
 
     requests.post('https://api.amplitude.com/2/httpapi',
                   params=data,
