@@ -43,7 +43,7 @@ def send_event(event, user, chat):
     }
 
     requests.post('https://api.amplitude.com/2/httpapi',
-                  params=data,
+                  data=data,
                   headers = headers)
 
 def send_first_launch_event(user, chat):
@@ -58,11 +58,11 @@ def send_start_event(user, chat):
     }
     send_event(event, user, chat)
 
-def send_message_event(user, chat, type, intent, text):
+def send_message_event(user, chat, message_type, intent, text):
     event = {
         'type': 'Message',
         'properties': {
-            'type': type,
+            'type': message_type,
             'intent': intent,
             'text': text
         }
