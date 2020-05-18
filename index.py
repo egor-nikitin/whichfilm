@@ -205,7 +205,7 @@ def send_seen_it_message(ctx, bot, chat):
 
 def send_no_more_items_message(ctx, bot, chat):
     text = 'Выше был единственный фильм с таким тэгом. Попробуй что-нибудь другое.'
-    tags = ['Давай случайный', 'Новое', 'Драма']
+    tags = ['Давай случайный', 'новое', 'драма']
     bot.sendMessage(chat_id=chat.id,
                     text=text,
                     reply_markup=get_reply_keyboard(tags))
