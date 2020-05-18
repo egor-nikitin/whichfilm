@@ -191,7 +191,7 @@ def send_help_message(ctx, bot, chat):
 def send_followup_message(ctx, bot, chat, tag=None):
     text = random.choice(['Ну что, как тебе?', 'Вот такое кино вспомнилось. Что думаешь?', 'Только не говори, что уже смотрел.', 'Что думаешь?'])
     if tag:
-        tags = ['Еще ' + tag, 'Что-то другое', 'Смотрел']
+        tags = ['Еще ' + tag, 'Другое', 'Смотрел']
     else:
         tags = ['Давай еще', 'Уже смотрел']
     bot.sendMessage(chat_id=chat.id,
