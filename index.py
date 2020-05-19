@@ -192,6 +192,11 @@ def send_help_message(ctx, bot, chat):
                     text=text,
                     reply_markup=get_reply_keyboard(tags))            
 
+def send_seen_it_message(ctx, bot, chat):
+    text = random.choice(['А ты насмотренный.', 'Ладно. Дай подумать.', 'Бывает. Сейчас еще один дам.', 'А этот?'])
+    bot.sendMessage(chat_id=chat.id,
+                    text=text)
+
 def send_followup_message(ctx, bot, chat, tag=None):
     text = random.choice(['Ну что, как тебе?', 'Вот такое кино вспомнилось. Что думаешь?', 'Только не говори, что уже смотрел.', 'Что думаешь?'])
     if tag:
@@ -201,11 +206,6 @@ def send_followup_message(ctx, bot, chat, tag=None):
     bot.sendMessage(chat_id=chat.id,
                     text=text,
                     reply_markup=get_reply_keyboard(tags))
-
-def send_seen_it_message(ctx, bot, chat):
-    text = random.choice(['А ты насмотренный.', 'Ладно. Дай подумать.', 'Бывает. Сейчас еще один дам.', 'А этот?'])
-    bot.sendMessage(chat_id=chat.id,
-                    text=text)
 
 def send_no_more_items_message(ctx, bot, chat):
     text = 'Выше был единственный фильм с таким тэгом. Попробуй что-нибудь другое.'
