@@ -262,7 +262,6 @@ def reply_to_inline(ctx, bot, query):
 
     analytics.send_message_event(query.from_user, query.message.chat, 'inline', 'query', query.data)
 
-
 @app.route('/', methods=['GET'])
 def getme():
     TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
