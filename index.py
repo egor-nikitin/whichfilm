@@ -25,10 +25,10 @@ def get_recommendation(ctx, chat_id, text):
 
     items = ctx['items']
     items = [x for x in items if x['id'] not in prev_items]
-    items_with_tag = [x for x in items if text in x['tags']] if text else []
 
     filtered = False
-    if items_with_tag != []:
+    if text:
+        items_with_tag = [x for x in items if text in x['tags']]
         item = random.choice(items_with_tag) if items_with_tag != [] else None
         filtered = True
     else:
