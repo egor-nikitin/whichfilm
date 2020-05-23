@@ -6,69 +6,21 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMa
 import pyrebase
 import time
 import analytics
+import db
 
 from flask import Flask, jsonify, Response, request
 app = Flask(__name__)
 
 def init():
-    config = {
-        'apiKey': os.getenv("FIREBASE_API_KEY"),
-        'authDomain': 'whichfilmbot.firebaseapp.com',
-        'databaseURL': 'https://whichfilmbot.firebaseio.com',
-        'projectId': 'whichfilmbot',
-        'storageBucket': 'whichfilmbot.appspot.com',
-        'messagingSenderId': '914533040757',
-        'appId': '1:914533040757:web:6410e7bf9f046353cc2e3c'
-    }
-
-    firebase = pyrebase.initialize_app(config)
-
-    return {
-        'auth': firebase.auth(),
-        'db_auth_updated_at': 0,
-        'db_user': {},
-        'db': firebase.database(),
-        'firebase': firebase,
+    global_ctx = {
         'items': [],
         'chats': {}
     }
+    db.init(global_ctx)
+
+    return global_ctx
 
 ctx = init()
-
-def refresh_db_auth(ctx):
-    if ctx['db_auth_updated_at'] == 0:
-        ctx['db_user'] = ctx['auth'].sign_in_with_email_and_password('yegor.nikitin@gmail.com', os.getenv("FIREBASE_PASSWORD"))
-        ctx['db_auth_updated_at'] = time.time()
-    elif (time.time() - ctx['db_auth_updated_at'] > 3500):
-        ctx['db_user'] = ctx['auth'].refresh(ctx['db_user']['refreshToken'])
-        ctx['db_auth_updated_at'] = time.time()
-
-def update_items_cache(ctx):
-    if ctx['items'] == []:
-        db_items = ctx['db'].child(ctx['db_user']['localId']).child("items").get(ctx['db_user']['idToken'])
-        for db_item in db_items.each():
-            item = db_item.val()
-            item['id'] = db_item.key()
-            ctx['items'].append(item)
-
-def update_item_in_db(ctx, item):
-    ctx['db'].child(ctx['db_user']['localId']).child("items").child(item['id']).update(item, ctx['db_user']['idToken'])
-
-def save_user(ctx, user, chat):
-    user_db = ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).get(ctx['db_user']['idToken'])
-    if not user_db.val():
-        user_data = {
-            'id': user.id,
-            'is_bot': user.is_bot,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'username': user.username,
-            'language_code': user.language_code,
-            'created_at': int(time.time())
-        }
-        ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).set(user_data, ctx['db_user']['idToken'])
-        analytics.send_first_launch_event(user, chat)
-    analytics.send_start_event(user, chat)
 
 def get_recommendation(ctx, chat_id, text):
     prev_item_id = ctx['chats'][chat_id][-1] if chat_id in ctx['chats'] else None
@@ -157,7 +109,7 @@ def send_item(ctx, bot, user, chat, item):
                       reply_markup=get_tags_keyboard(tags))
         item['images'] = photo_size_to_json(message.photo)
         item['file_id'] = get_biggest_photo_file_id(message.photo)
-        update_item_in_db(ctx, item)
+        db.update_item(ctx, item)
     elif 'file_id' in item:
         bot.sendPhoto(chat_id=chat.id,
                       photo=item['file_id'],
@@ -213,6 +165,11 @@ def send_no_more_items_message(ctx, bot, chat):
     bot.sendMessage(chat_id=chat.id,
                     text=text,
                     reply_markup=get_reply_keyboard(tags))
+
+def save_user(ctx, user, chat):
+    if db.save_user(ctx, user, chat):
+        analytics.send_first_launch_event(user, chat)
+    analytics.send_start_event(user, chat)
 
 def reply(ctx, bot, message):
     intent = ''
@@ -278,8 +235,8 @@ def api():
     
     if request.method == "POST":
         random.seed()
-        refresh_db_auth(ctx)
-        update_items_cache(ctx)
+        db.refresh_auth(ctx)
+        db.update_items_cache(ctx)
         update = telegram.Update.de_json(request.get_json(force=True), bot)
 
         if update.message:
