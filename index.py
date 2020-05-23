@@ -97,9 +97,9 @@ def save_sent_item(ctx, chat_id, item):
     else:
         depth = 5
         prev_items = ctx['chats'][chat_id]
-        if len(prev_items == depth):
+        if len(prev_items) == depth:
             prev_items = prev_items[1:]
-        prev_items.append(item['id'])
+        ctx['chats'][chat_id] = prev_items + [item['id']]
 
 def send_item(ctx, bot, user, chat, item):
     text = get_item_text(item)
