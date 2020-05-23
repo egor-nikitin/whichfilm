@@ -164,7 +164,7 @@ def send_followup_message(ctx, bot, chat, tag=None):
                     reply_markup=get_reply_keyboard(tags))
 
 def send_no_more_items_message(ctx, bot, chat, tag):
-    text = 'Все фильмы с темой ' + tag + '. Поэтому держи случайный. Что скажешь?'
+    text = 'Все фильмы с темой ' + tag + ' я тебе уже показал. Поэтому держи случайный. Что скажешь?'
     tags = ['Давай еще', 'Уже смотрел']
     bot.sendMessage(chat_id=chat.id,
                     text=text,
