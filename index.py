@@ -163,8 +163,8 @@ def send_followup_message(ctx, bot, chat, tag=None):
                     text=text,
                     reply_markup=get_reply_keyboard(tags))
 
-def send_no_more_items_message(ctx, bot, chat):
-    text = 'Все фильмы с таким тэгом я тебе уже показал. Поэтому держи случайный. Что скажешь?'
+def send_no_more_items_message(ctx, bot, chat, tag):
+    text = 'Все фильмы с темой ' + tag + '. Поэтому держи случайный. Что скажешь?'
     tags = ['Давай еще', 'Уже смотрел']
     bot.sendMessage(chat_id=chat.id,
                     text=text,
@@ -210,7 +210,7 @@ def reply(ctx, bot, message):
         else:
             item, filtered = get_recommendation(ctx, message.chat.id, '')
             send_item(ctx, bot, message.from_user, message.chat, item)
-            send_no_more_items_message(ctx, bot, message.chat)
+            send_no_more_items_message(ctx, bot, message.chat, text)
 
     analytics.send_message_event(message.from_user, message.chat, 'reply', intent, message.text)
 
@@ -224,7 +224,7 @@ def reply_to_inline(ctx, bot, query):
     else:
         item, filtered = get_recommendation(ctx, query.message.chat.id, '')
         send_item(ctx, bot, query.from_user, query.message.chat, item)
-        send_no_more_items_message(ctx, bot, query.message.chat)
+        send_no_more_items_message(ctx, bot, query.message.chat, query.data)
 
     analytics.send_message_event(query.from_user, query.message.chat, 'inline', 'query', query.data)
 
