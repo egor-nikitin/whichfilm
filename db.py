@@ -53,6 +53,31 @@ def save_user(ctx, user, chat):
             'language_code': user.language_code,
             'created_at': int(time.time())
         }
-        ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).set(user_data, ctx['db_user']['idToken'])        
+        ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).set(user_data, ctx['db_user']['idToken'])
         return True
     return False
+
+def get_watched_items(ctx, user):
+    user_data = ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).get(ctx['db_user']['idToken']).val()
+    if user_data:
+        if 'watched_items' in user_data:
+            return user_data['watched_items']
+        else:
+            return []
+
+def update_chats_cache(ctx, user, chat):
+    if chat.id not in ctx['chats']:
+        ctx['chats'][chat.id] = {
+            'prev_items': [],
+            'watched_items': get_watched_items(ctx, user)
+        }
+
+def save_watched_item(ctx, user, chat):
+    chat_cache = ctx['chats'][chat.id]
+    prev_items = chat_cache['prev_items']
+    if prev_items != []:
+        item = prev_items[-1]
+        chat_cache['watched_items'].append(item)
+        new_watched_items = chat_cache['watched_items']
+        ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).child('watched_items').set(new_watched_items, ctx['db_user']['idToken'])
+

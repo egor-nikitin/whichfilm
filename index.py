@@ -21,10 +21,10 @@ def init():
 ctx = init()
 
 def get_recommendation(ctx, chat_id, text):
-    prev_items = ctx['chats'][chat_id] if chat_id in ctx['chats'] else []
+    filtered__items = ctx['chats'][chat_id]['prev_items'] + ctx['chats'][chat_id]['watched_items']
 
     items = ctx['items']
-    items = [x for x in items if x['id'] not in prev_items]
+    items = [x for x in items if x['id'] not in filtered__items]
 
     filtered = False
     if text:
@@ -91,15 +91,12 @@ def photo_size_to_json(photos):
         })
     return images
 
-def save_sent_item(ctx, chat_id, item):
-    if chat_id not in ctx['chats']:
-        ctx['chats'][chat_id] = [item['id']]
-    else:
-        depth = 5
-        prev_items = ctx['chats'][chat_id]
-        if len(prev_items) == depth:
-            prev_items = prev_items[1:]
-        ctx['chats'][chat_id] = prev_items + [item['id']]
+def save_sent_item(ctx, chat, item):
+    depth = 5
+    prev_items = ctx['chats'][chat.id]['prev_items']
+    if len(prev_items) == depth:
+        prev_items = prev_items[1:]
+    ctx['chats'][chat.id]['prev_items'] = prev_items + [item['id']]
 
 def send_item(ctx, bot, user, chat, item):
     text = get_item_text(item)
@@ -125,7 +122,7 @@ def send_item(ctx, bot, user, chat, item):
                         text=text,
                         reply_markup=get_tags_keyboard(tags))
 
-    save_sent_item(ctx, chat.id, item)
+    save_sent_item(ctx, chat, item)
     analytics.send_item_sent_event(user, chat, item)
 
 
@@ -191,6 +188,7 @@ def reply(ctx, bot, message):
         elif message.text.lower() in ['уже смотрел', 'смотрел']:
             intent = 'seen_already'
             send_seen_it_message(ctx, bot, message.chat)
+            db.save_watched_item(ctx, message.from_user, message.chat)
             text = ''
         elif message.text.startswith('Еще '):
             intent = 'random'
@@ -249,8 +247,10 @@ def api():
         update = telegram.Update.de_json(request.get_json(force=True), bot)
 
         if update.message:
+            db.update_chats_cache(ctx, update.message.from_user, update.message.chat)
             reply(ctx, bot, update.message)
         else:
+            db.update_chats_cache(ctx, update.callback_query.from_user, update.callback_query.message.chat)
             reply_to_inline(ctx, bot, update.callback_query)
     else:
         return str(bot.get_me())
