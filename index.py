@@ -21,7 +21,7 @@ def init():
 ctx = init()
 
 def get_recommendation(ctx, chat_id, text):
-    prev_items = ctx['chats'][chat_id] if chat_id in ctx['chats'] else None
+    prev_items = ctx['chats'][chat_id] if chat_id in ctx['chats'] else []
 
     items = ctx['items']
     items = [x for x in items if x['id'] not in prev_items]
