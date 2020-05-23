@@ -125,6 +125,7 @@ def send_item(ctx, bot, user, chat, item):
     save_sent_item(ctx, chat.id, item)
     analytics.send_item_sent_event(user, chat, item)
 
+
 def send_start_message(ctx, bot, chat):
     text = 'Я буду советовать фильмы из категорий, которые ты будешь выбирать. Наверное, тебя интересуют новинки. Если нет, могу предложить случайный фильм. Или просто набери интересную тебе категорию. Поищем.'
     tags = ['Хочу новинки', 'Давай случайный']
