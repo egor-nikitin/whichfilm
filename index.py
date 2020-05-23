@@ -3,8 +3,6 @@ import random
 import logging
 import telegram
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
-import pyrebase
-import time
 import analytics
 import db
 
@@ -23,18 +21,18 @@ def init():
 ctx = init()
 
 def get_recommendation(ctx, chat_id, text):
-    prev_item_id = ctx['chats'][chat_id][-1] if chat_id in ctx['chats'] else None
+    prev_items = ctx['chats'][chat_id] if chat_id in ctx['chats'] else None
 
     items = ctx['items']
+    items = [x for x in items if x['id'] not in prev_items]
     items_with_tag = [x for x in items if text in x['tags']] if text else []
 
     filtered = False
     if items_with_tag != []:
-        items_with_tag = [x for x in items_with_tag if x['id'] != prev_item_id]
         item = random.choice(items_with_tag) if items_with_tag != [] else None
         filtered = True
     else:
-        item = random.choice([x for x in items if x['id'] != prev_item_id])
+        item = random.choice(items)
     return item, filtered
 
 def split_into_rows(tags):
@@ -95,8 +93,13 @@ def photo_size_to_json(photos):
 
 def save_sent_item(ctx, chat_id, item):
     if chat_id not in ctx['chats']:
-        ctx['chats'][chat_id] = []
-    ctx['chats'][chat_id].append(item['id'])
+        ctx['chats'][chat_id] = [item['id']]
+    else:
+        depth = 5
+        prev_items = ctx['chats'][chat_id]
+        if len(prev_items == depth):
+            prev_items = prev_items[1:]
+        prev_items.append(item['id'])
 
 def send_item(ctx, bot, user, chat, item):
     text = get_item_text(item)
