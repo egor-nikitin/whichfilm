@@ -192,7 +192,7 @@ def reply(ctx, bot, message):
             text = ''
         elif message.text.startswith('Еще '):
             intent = 'random'
-            text = message.text.split(' ')[1]
+            text = ' '.join(message.text.split(' ')[1:])
         elif message.text.lower() in ['давай случайный', 'другое', 'еще', 'давай еще', 'понятно', 'что посмотреть?'] or message.text.startswith('/'):
             intent = 'random'
             text = ''
