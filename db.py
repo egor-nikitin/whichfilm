@@ -42,10 +42,11 @@ def update_item(ctx, item):
     ctx['db'].child(ctx['db_user']['localId']).child("items").child(item['id']).update(item, ctx['db_user']['idToken'])
 
 def save_user(ctx, user, chat):
-    user_db = ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).get(ctx['db_user']['idToken'])
-    if not user_db.val():
-        user_data = {
+    user_data = ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).get(ctx['db_user']['idToken']).val()
+    if not user_data:
+        new_user_data = {
             'id': user.id,
+            'chat_id': chat.id,
             'is_bot': user.is_bot,
             'first_name': user.first_name,
             'last_name': user.last_name,
@@ -53,8 +54,11 @@ def save_user(ctx, user, chat):
             'language_code': user.language_code,
             'created_at': int(time.time())
         }
-        ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).set(user_data, ctx['db_user']['idToken'])
+        ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).set(new_user_data, ctx['db_user']['idToken'])
         return True
+    # update chat_id if changed
+    if 'chat_id' in user_data and user_data['chat_id'] != chat.id:
+        ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).child('chat_id').set(chat.id, ctx['db_user']['idToken'])
     return False
 
 def get_watched_items(ctx, user):
