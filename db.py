@@ -57,7 +57,7 @@ def save_user(ctx, user, chat):
         ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).set(new_user_data, ctx['db_user']['idToken'])
         return True
     # update chat_id if changed
-    if 'chat_id' in user_data and user_data['chat_id'] != chat.id:
+    if 'chat_id' not in user_data or user_data['chat_id'] != chat.id:
         ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).child('chat_id').set(chat.id, ctx['db_user']['idToken'])
     return False
 
