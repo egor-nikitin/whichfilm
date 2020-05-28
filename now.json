@@ -7,6 +7,7 @@
     ],
     "env": {
       "TELEGRAM_TOKEN": "@telegram-token",
+      "TELEGRAM_TOKEN_NEW": "@telegram-token-new",
       "FIREBASE_API_KEY": "@firebase-api-key",
       "FIREBASE_PASSWORD": "@firebase-password",
       "AMPLITUDE_API_KEY": "@amplitude-api-key"
