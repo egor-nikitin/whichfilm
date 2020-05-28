@@ -172,7 +172,7 @@ def send_all_tags_message(ctx, bot, chat):
         tags = tags | set(item['tags'])
     tags = random.sample(tags, max(len(tags), 10))
     bot.sendMessage(chat_id=chat.id,
-                    text='',
+                    text='Выбери, что по душе.',
                     reply_markup=get_tags_keyboard(tags))
 
 def save_user(ctx, user, chat):
