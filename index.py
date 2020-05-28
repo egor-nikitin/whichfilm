@@ -237,6 +237,10 @@ def getme():
     bot = telegram.Bot(TELEGRAM_TOKEN)
     return str(bot.get_me())    
 
+@app.route('/clear_items_cache', methods=['GET'])
+def clear_cache():
+    ctx['items'] = []
+
 @app.route('/api2', methods=['GET', 'POST'])
 def api():
     TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN_NEW")
