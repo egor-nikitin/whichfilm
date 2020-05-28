@@ -133,9 +133,10 @@ def send_start_message(ctx, bot, chat):
                     reply_markup=get_reply_keyboard(tags))
 
 def send_help_message(ctx, bot, chat):
-    text = """Советую кино, которое мне самому нравится. Нажимай на любой из тэгов фильма, чтобы увидеть другой с таким же тэгом. Можешь просто набрать тэг текстом.
+    text = """Советую кино, которое мне самому нравится. Нажимай на любой из тегов фильма, чтобы увидеть другой с таким же тегом. Можешь просто набрать тег текстом.
 
 /start, если хочешь начать разговор сначала.
+/tags, чтобы получить случайный набор тегов.
 
 С предложениями и вопросами можно обращаться к @nikitinev.
 """
@@ -170,7 +171,7 @@ def send_all_tags_message(ctx, bot, chat):
     tags = set()
     for item in ctx['items']:
         tags = tags | set(item['tags'])
-    tags = random.sample(tags, max(len(tags), 10))
+    tags = random.sample(tags, min(len(tags), 10))
     bot.sendMessage(chat_id=chat.id,
                     text='Выбери, что по душе.',
                     reply_markup=get_tags_keyboard(tags))
