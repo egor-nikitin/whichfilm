@@ -219,16 +219,17 @@ def reply(ctx, bot, message):
 def reply_to_inline(ctx, bot, query):
     item, filtered = get_recommendation(ctx, query.message.chat.id, query.data)
     bot.answerCallbackQuery(callback_query_id=query.id)
+    analytics.send_message_event(query.from_user, query.message.chat, 'inline', 'query', query.data)
     if item:
         send_item(ctx, bot, query.from_user, query.message.chat, item)
+        analytics.send_item_sent_event(query.from_user, query.message.chat, item)
         send_followup_message(ctx, bot, query.message.chat,
                             query.data if filtered else None)
     else:
         item, filtered = get_recommendation(ctx, query.message.chat.id, '')
         send_item(ctx, bot, query.from_user, query.message.chat, item)
+        analytics.send_item_sent_event(query.from_user, query.message.chat, item)
         send_no_more_items_message(ctx, bot, query.message.chat, query.data)
-
-    analytics.send_message_event(query.from_user, query.message.chat, 'inline', 'query', query.data)
 
 @app.route('/', methods=['GET'])
 def getme():
