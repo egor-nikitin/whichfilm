@@ -166,6 +166,15 @@ def send_no_more_items_message(ctx, bot, chat, tag):
                     text=text,
                     reply_markup=get_reply_keyboard(tags))
 
+def send_all_tags_message(ctx, bot, chat):
+    tags = set()
+    for item in ctx['items']:
+        tags = tags | set(item['tags'])
+    tags = random.sample(tags, max(len(tags), 10))
+    bot.sendMessage(chat_id=chat.id,
+                    text='',
+                    reply_markup=get_tags_keyboard(tags))
+
 def save_user(ctx, user, chat):
     if db.save_user(ctx, user, chat):
         analytics.send_first_launch_event(user, chat)
@@ -181,6 +190,9 @@ def reply(ctx, bot, message):
     elif message.text == '/help':
         intent = 'command'
         send_help_message(ctx, bot, message.chat)
+    elif message.text == '/tags':
+        intent = 'command'
+        send_all_tags_message(ctx, bot, message.chat)
     else:
         if message.text == 'Хочу новинки':
             intent = 'query'
