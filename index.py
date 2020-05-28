@@ -261,28 +261,3 @@ def api():
         return str(bot.get_me())
         
     return jsonify({"status": "ok"})
-
-@app.route('/api', methods=['GET', 'POST'])
-def api_old():
-    TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-    if TELEGRAM_TOKEN is None:
-        return jsonify({"status": "error", "reason": "no tg token"})
-    
-    bot = telegram.Bot(TELEGRAM_TOKEN)
-    
-    if request.method == "POST":
-        random.seed()
-        db.refresh_auth(ctx)
-        db.update_items_cache(ctx)
-        update = telegram.Update.de_json(request.get_json(force=True), bot)
-
-        if update.message:
-            db.update_chats_cache(ctx, update.message.from_user, update.message.chat)
-            reply(ctx, bot, update.message)
-        else:
-            db.update_chats_cache(ctx, update.callback_query.from_user, update.callback_query.message.chat)
-            reply_to_inline(ctx, bot, update.callback_query)
-    else:
-        return str(bot.get_me())
-        
-    return jsonify({"status": "ok"})
