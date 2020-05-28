@@ -123,7 +123,6 @@ def send_item(ctx, bot, user, chat, item):
                         reply_markup=get_tags_keyboard(tags))
 
     save_sent_item(ctx, chat, item)
-    analytics.send_item_sent_event(user, chat, item)
 
 
 def send_start_message(ctx, bot, chat):
@@ -174,6 +173,7 @@ def save_user(ctx, user, chat):
 
 def reply(ctx, bot, message):
     intent = ''
+    sent_item = None
     if message.text == '/start':
         intent = 'command'
         save_user(ctx, message.from_user, message.chat)
@@ -203,14 +203,18 @@ def reply(ctx, bot, message):
         item, filtered = get_recommendation(ctx, message.chat.id, text)
         if item:
             send_item(ctx, bot, message.from_user, message.chat, item)
+            sent_item = item
             send_followup_message(ctx, bot, message.chat,
                                   text if filtered else None)
         else:
             item, filtered = get_recommendation(ctx, message.chat.id, '')
             send_item(ctx, bot, message.from_user, message.chat, item)
+            sent_item = item
             send_no_more_items_message(ctx, bot, message.chat, text)
 
     analytics.send_message_event(message.from_user, message.chat, 'reply', intent, message.text)
+    if sent_item:
+        analytics.send_item_sent_event(message.from_user, message.chat, sent_item)
 
 def reply_to_inline(ctx, bot, query):
     item, filtered = get_recommendation(ctx, query.message.chat.id, query.data)

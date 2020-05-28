@@ -15,7 +15,7 @@ def day_number():
     today = datetime.datetime.now()
     return (today - datetime.datetime(today.year, 1, 1)).days + 1
 
-def send_event(event, user, chat):
+def get_event_data(event, user, chat):
     event_data = {
         'insert_id': str(uuid.uuid4()),
         'user_id': str(user.id),
@@ -37,6 +37,11 @@ def send_event(event, user, chat):
 
     if 'properties' in event:
         event_data['event_properties'] = event['properties']
+    
+    return event_data
+
+def send_event(event, user, chat):
+    event_data = get_event_data(event, user, chat)
 
     data = {
         'api_key': os.getenv('AMPLITUDE_API_KEY'),
