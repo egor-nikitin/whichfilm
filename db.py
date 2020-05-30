@@ -32,17 +32,17 @@ def refresh_auth(ctx):
 
 def update_items_cache(ctx):
     if ctx['items'] == []:
-        db_items = ctx['db'].child(ctx['db_user']['localId']).child("items").get(ctx['db_user']['idToken'])
+        db_items = ctx['db'].child(ctx['db_user']['localId']).child('items').get(ctx['db_user']['idToken'])
         for db_item in db_items.each():
             item = db_item.val()
             item['id'] = db_item.key()
             ctx['items'].append(item)
 
 def update_item(ctx, item):
-    ctx['db'].child(ctx['db_user']['localId']).child("items").child(item['id']).update(item, ctx['db_user']['idToken'])
+    ctx['db'].child(ctx['db_user']['localId']).child('items').child(item['id']).update(item, ctx['db_user']['idToken'])
 
 def save_user(ctx, user, chat):
-    user_data = ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).get(ctx['db_user']['idToken']).val()
+    user_data = ctx['db'].child(ctx['db_user']['localId']).child('users').child(user.id).get(ctx['db_user']['idToken']).val()
     if not user_data:
         new_user_data = {
             'id': user.id,
@@ -54,20 +54,21 @@ def save_user(ctx, user, chat):
             'language_code': user.language_code,
             'created_at': int(time.time())
         }
-        ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).set(new_user_data, ctx['db_user']['idToken'])
+        ctx['db'].child(ctx['db_user']['localId']).child('users').child(user.id).set(new_user_data, ctx['db_user']['idToken'])
         return True
     # update chat_id if changed
     if 'chat_id' not in user_data or user_data['chat_id'] != chat.id:
-        ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).child('chat_id').set(chat.id, ctx['db_user']['idToken'])
+        ctx['db'].child(ctx['db_user']['localId']).child('users').child(user.id).child('chat_id').set(chat.id, ctx['db_user']['idToken'])
     return False
 
 def get_watched_items(ctx, user):
-    user_data = ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).get(ctx['db_user']['idToken']).val()
+    user_data = ctx['db'].child(ctx['db_user']['localId']).child('users').child(user.id).get(ctx['db_user']['idToken']).val()
     if user_data:
         if 'watched_items' in user_data:
             return user_data['watched_items']
         else:
             return []
+    return []
 
 def update_chats_cache(ctx, user, chat):
     if chat.id not in ctx['chats']:
@@ -83,5 +84,5 @@ def save_watched_item(ctx, user, chat):
         item = prev_items[-1]
         chat_cache['watched_items'].append(item)
         new_watched_items = chat_cache['watched_items']
-        ctx['db'].child(ctx['db_user']['localId']).child("users").child(user.id).child('watched_items').set(new_watched_items, ctx['db_user']['idToken'])
+        ctx['db'].child(ctx['db_user']['localId']).child('users').child(user.id).child('watched_items').set(new_watched_items, ctx['db_user']['idToken'])
 
