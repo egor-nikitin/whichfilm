@@ -3,6 +3,7 @@ import random
 import logging
 import telegram
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
+from telegram.error import Unauthorized
 import analytics
 import db
 
@@ -244,6 +245,11 @@ def reply_to_inline(ctx, bot, query):
         analytics.send_item_sent_event(query.from_user, query.message.chat, item)
         send_no_more_items_message(ctx, bot, query.message.chat, query.data)
 
+def remove_chat(ctx, user, chat):
+    db.remove_chat(ctx, user)
+    if chat.id in ctx['chats']:
+        del ctx['chats'][chat.id]
+
 @app.route('/', methods=['GET'])
 def getme():
     TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -270,10 +276,16 @@ def api():
 
         if update.message:
             db.update_chats_cache(ctx, update.message.from_user, update.message.chat)
-            reply(ctx, bot, update.message)
+            try:
+                reply(ctx, bot, update.message)
+            except Unauthorized:
+                remove_chat(ctx, update.message.from_user, update.message.chat)
         else:
             db.update_chats_cache(ctx, update.callback_query.from_user, update.callback_query.message.chat)
-            reply_to_inline(ctx, bot, update.callback_query)
+            try:
+                reply_to_inline(ctx, bot, update.callback_query)
+            except Unauthorized:
+                remove_chat(ctx, update.callback_query.from_user, update.callback_query.message.chat)
     else:
         return str(bot.get_me())
         
