@@ -21,19 +21,20 @@ def get_event_data(event, user, chat):
         'user_id': str(user.id),
         'device_id': str(chat.id),
         'event_type': event['type'],
-        'user_properties': {
+        'app_version': '1.0',
+        'platform': 'Telegram'
+    }
+
+    if not 'user_properties' in event:
+        event_data['user_properties'] = {
             'is_bot': user.is_bot,
             'first_name': user.first_name,
             'last_name': user.last_name,
             'username': user.username,
-            'language_code': user.language_code,
-            'cohort_day': day_number(),
-            'cohort_week': week_number(),
-            'cohort_year': datetime.date.today().year
-        },
-        'app_version': '1.0',
-        'platform': 'Telegram'
-    }
+            'language_code': user.language_code
+        }
+    else:
+        event_data['user_properties'] = event['user_properties']
 
     if 'properties' in event:
         event_data['event_properties'] = event['properties']
@@ -54,7 +55,17 @@ def send_event(event, user, chat):
 
 def send_first_launch_event(user, chat):
     event = {
-        'type': 'Launch first time'
+        'type': 'Launch first time',
+        'user_properties': {
+            'is_bot': user.is_bot,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'username': user.username,
+            'language_code': user.language_code,
+            'cohort_day': day_number(),
+            'cohort_week': week_number(),
+            'cohort_year': datetime.date.today().year
+        }
     }
     send_event(event, user, chat)
 
