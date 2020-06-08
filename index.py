@@ -39,7 +39,9 @@ def send_messages():
         return jsonify({'status': 'error', 'reason': 'no tg token'})
     
     bot = telegram.Bot(TELEGRAM_TOKEN)
-    messages.send(bot, request.get_json(force=True))
+
+    db.refresh_auth(ctx)
+    messages.send(ctx, bot, request.get_json(force=True))
 
     return jsonify({'status': 'ok'})
 
