@@ -23,7 +23,7 @@ ctx = init()
 
 @app.route('/', methods=['GET'])
 def getme():
-    TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+    TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN_NEW')
     bot = telegram.Bot(TELEGRAM_TOKEN)
     return str(bot.get_me())    
 
