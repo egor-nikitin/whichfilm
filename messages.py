@@ -13,7 +13,7 @@ from flask import jsonify
 
 def send(ctx, bot, request):
     if not 'messages' in request:
-        return
+        return jsonify({'text': 'No messages to send!'})
 
     users_filter = []
     if 'users' in request:

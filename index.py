@@ -41,9 +41,7 @@ def send_messages():
     bot = telegram.Bot(TELEGRAM_TOKEN)
 
     db.refresh_auth(ctx)
-    messages.send(ctx, bot, request.get_json(force=True))
-
-    return jsonify({'status': 'ok'})
+    return messages.send(ctx, bot, request.get_json(force=True))
 
 @app.route('/api2', methods=['GET', 'POST'])
 def api():
