@@ -32,9 +32,15 @@ def clear_cache():
     ctx['items'] = []
     return jsonify({'status': 'ok'})
 
-@app.route('/send_messages', methods=['GET'])
+@app.route('/send_messages', methods=['POST'])
 def send_messages():
-    messages.send()
+    TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN_NEW')
+    if TELEGRAM_TOKEN is None:
+        return jsonify({'status': 'error', 'reason': 'no tg token'})
+    
+    bot = telegram.Bot(TELEGRAM_TOKEN)
+    messages.send(bot, request.get_json(force=True))
+
     return jsonify({'status': 'ok'})
 
 @app.route('/api2', methods=['GET', 'POST'])

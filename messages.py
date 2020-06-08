@@ -1,2 +1,2 @@
-def send():
-    pass
+def send(bot, request):
+    return request['test']
