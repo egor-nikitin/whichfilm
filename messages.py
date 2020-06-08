@@ -1,6 +1,7 @@
 import db
 import reply
 from flask import jsonify
+from telegram.error import Unauthorized
 
 #{
 #    'users': [123, 456],
@@ -58,6 +59,11 @@ def send(ctx, bot, request):
                                     parse_mode='HTML',
                                     text=message['text'])
                     messages_sent += 1
+        except Unauthorized as ex:
+            db.remove_chat(ctx, user['id'])
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            error_texts.append(template.format(type(ex).__name__, ex.args))
+            error_count += 1
         except Exception as ex:
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
             error_texts.append(template.format(type(ex).__name__, ex.args))

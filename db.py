@@ -86,8 +86,8 @@ def save_watched_item(ctx, user, chat):
         new_watched_items = chat_cache['watched_items']
         ctx['db'].child(ctx['db_user']['localId']).child('users').child(user.id).child('watched_items').set(new_watched_items, ctx['db_user']['idToken'])
 
-def remove_chat(ctx, user):
-    ctx['db'].child(ctx['db_user']['localId']).child('users').child(user.id).child('chat_id').remove(ctx['db_user']['idToken'])
+def remove_chat(ctx, user_id):
+    ctx['db'].child(ctx['db_user']['localId']).child('users').child(user_id).child('chat_id').remove(ctx['db_user']['idToken'])
 
 def get_users(ctx):
     users_db = ctx['db'].child(ctx['db_user']['localId']).child('users').get(ctx['db_user']['idToken'])

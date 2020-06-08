@@ -231,6 +231,6 @@ def reply_to_inline(ctx, bot, query):
         send_no_more_items_message(ctx, bot, query.message.chat, query.data)
 
 def remove_chat(ctx, user, chat):
-    db.remove_chat(ctx, user)
+    db.remove_chat(ctx, user.id)
     if chat.id in ctx['chats']:
         del ctx['chats'][chat.id]
