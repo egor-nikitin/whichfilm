@@ -170,6 +170,7 @@ def save_user(ctx, user, chat):
 def reply(ctx, bot, message):
     intent = ''
     sent_item = None
+
     if message.text == '/start':
         intent = 'command'
         save_user(ctx, message.from_user, message.chat)
@@ -180,7 +181,7 @@ def reply(ctx, bot, message):
     elif message.text == '/tags':
         intent = 'command'
         send_all_tags_message(ctx, bot, message.chat)
-    else:
+    elif message.text:
         if message.text == 'Хочу новинки':
             intent = 'query'
             text = 'новое'
